@@ -58,7 +58,7 @@ The user interface is designed to be intuitive and powerful, allowing users to q
 
 **Main Dashboard & Pricing Interface:**
 
-<img src="docs/img/image.png" alt="Application Screenshot" width="400" height="550">
+<img src="docs/img/image.png" alt="Application Screenshot" width="600" height="800">
 
 **System Architecture Overview:**
 
