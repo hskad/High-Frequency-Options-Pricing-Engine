@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HF Options Pricing Engine</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjs@11.8.0/lib/browser/math.min.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <div class="container">
+                <div class="flex justify-between items-center">
+                    <h1 class="app-title">Options Pricing Engine</h1>
+                    <div class="timing-display">
+                        <span id="calculation-time">Calculation time: 0ms</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+        
+        <main class="container">
+            <div class="app-tabs">
+                <button class="tab-btn active" data-tab="pricing">Pricing Engine</button>
+                <button class="tab-btn" data-tab="comparison">Results Comparison</button>
+                <button class="tab-btn" data-tab="analysis">Sensitivity Analysis</button>
+            </div>
+            
+            <div class="tab-content active" id="pricing-tab">
+                <div class="grid-layout">
+                    <div class="parameters-section card">
+                        <div class="card__header">
+                            <h2>Option Parameters</h2>
+                        </div>
+                        <div class="card__body">
+                            <form id="option-params-form">
+                                <div class="form-group">
+                                    <label class="form-label" for="underlying-price">Underlying Price (S₀)</label>
+                                    <input type="number" id="underlying-price" class="form-control" value="100" step="0.01" min="0.01">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label" for="strike-price">Strike Price (K)</label>
+                                    <input type="number" id="strike-price" class="form-control" value="100" step="0.01" min="0.01">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label" for="risk-free-rate">Risk-Free Rate (r)</label>
+                                    <input type="number" id="risk-free-rate" class="form-control" value="0.05" step="0.001" min="0">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label" for="volatility">Volatility (σ)</label>
+                                    <input type="number" id="volatility" class="form-control" value="0.2" step="0.01" min="0.01" max="2">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label" for="time-to-expiry">Time to Expiry (T) in years</label>
+                                    <input type="number" id="time-to-expiry" class="form-control" value="1" step="0.01" min="0.01" max="10">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label" for="dividend-yield">Dividend Yield (%)</label>
+                                    <input type="number" id="dividend-yield" class="form-control" value="0" step="0.01" min="0">
+                                </div>
+                                
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label class="form-label" for="option-type">Option Type</label>
+                                        <select id="option-type" class="form-control">
+                                            <option value="call">Call</option>
+                                            <option value="put">Put</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label class="form-label" for="option-style">Option Style</label>
+                                        <select id="option-style" class="form-control">
+                                            <option value="european">European</option>
+                                            <option value="american">American</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <div class="method-selection">
+                                    <h3 class="mb-8">Pricing Method</h3>
+                                    <div class="pricing-methods">
+                                        <div class="method-card" data-method="blackscholes">
+                                            <div class="method-header">
+                                                <h4>Black-Scholes</h4>
+                                            </div>
+                                            <div class="method-body">
+                                                <p>Closed-form analytical solution</p>
+                                                <ul class="method-features">
+                                                    <li>Instant calculation</li>
+                                                    <li>European options only</li>
+                                                    <li>Exact solution (no approximation)</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="method-card" data-method="montecarlo">
+                                            <div class="method-header">
+                                                <h4>Monte Carlo</h4>
+                                            </div>
+                                            <div class="method-body">
+                                                <p>Simulate multiple price paths</p>
+                                                <div class="form-group">
+                                                    <label class="form-label" for="mc-paths">Number of Paths</label>
+                                                    <input type="number" id="mc-paths" class="form-control" value="10000" step="1000" min="1000">
+                                                </div>
+                                                <div class="form-group">
+                                                    <label class="form-label" for="mc-steps">Time Steps</label>
+                                                    <input type="number" id="mc-steps" class="form-control" value="252" step="10" min="10">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="method-card" data-method="finitediff">
+                                            <div class="method-header">
+                                                <h4>Finite Difference</h4>
+                                            </div>
+                                            <div class="method-body">
+                                                <p>Solve PDE on a grid</p>
+                                                <div class="form-group">
+                                                    <label class="form-label" for="fd-grid-size">Grid Size</label>
+                                                    <input type="number" id="fd-grid-size" class="form-control" value="100" step="10" min="10">
+                                                </div>
+                                                <div class="form-group">
+                                                    <label class="form-label" for="fd-time-steps">Time Steps</label>
+                                                    <input type="number" id="fd-time-steps" class="form-control" value="100" step="10" min="10">
+                                                </div>
+                                                <div class="form-group">
+                                                    <label class="form-label" for="fd-scheme">Scheme</label>
+                                                    <select id="fd-scheme" class="form-control">
+                                                        <option value="explicit">Explicit</option>
+                                                        <option value="implicit">Implicit</option>
+                                                        <option value="cranknicolson" selected>Crank-Nicolson</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-actions">
+                                    <button type="button" id="calculate-btn" class="btn btn--primary">Calculate Price</button>
+                                    <button type="button" id="reset-btn" class="btn btn--secondary">Reset Parameters</button>
+                                </div>
+                                
+                                <div class="scenarios-section mt-8">
+                                    <h3 class="mb-8">Sample Scenarios</h3>
+                                    <div class="scenarios-btns">
+                                        <button type="button" class="btn btn--outline scenario-btn" data-scenario="atm-call">At-the-Money Call</button>
+                                        <button type="button" class="btn btn--outline scenario-btn" data-scenario="itm-put">Deep ITM Put</button>
+                                        <button type="button" class="btn btn--outline scenario-btn" data-scenario="high-vol">High Volatility</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <div class="results-section card">
+                        <div class="card__header">
+                            <h2>Pricing Results</h2>
+                        </div>
+                        <div class="card__body">
+                            <div id="results-container">
+                                <div class="no-results">
+                                    <p>Select parameters and click "Calculate Price" to view results</p>
+                                </div>
+                                
+                                <div id="results-data" class="hidden">
+                                    <div class="result-header">
+                                        <h3 id="result-method-name">Black-Scholes Pricing</h3>
+                                        <span class="status status--success" id="result-status">Calculation Complete</span>
+                                    </div>
+                                    
+                                    <div class="result-value">
+                                        <h2 id="option-price-value">$0.00</h2>
+                                        <p>Option Price</p>
+                                    </div>
+                                    
+                                    <div class="result-details">
+                                        <div class="greeks-table">
+                                            <h4>Greeks</h4>
+                                            <table class="data-table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Greek</th>
+                                                        <th>Value</th>
+                                                        <th>Description</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="greeks-table-body">
+                                                    <!-- Greeks will be added here -->
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="visualization-container">
+                                        <h4>Visualization</h4>
+                                        <div class="visualization-tabs">
+                                            <button class="viz-tab-btn active" data-viz="price-paths">Price Paths</button>
+                                            <button class="viz-tab-btn" data-viz="convergence">Convergence</button>
+                                            <button class="viz-tab-btn" data-viz="value-surface">Value Surface</button>
+                                        </div>
+                                        <div class="chart-container">
+                                            <canvas id="result-chart"></canvas>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="performance-metrics">
+                                        <h4>Performance Metrics</h4>
+                                        <div class="metrics-grid">
+                                            <div class="metric-card">
+                                                <h5>Calculation Time</h5>
+                                                <p id="calc-time-value">0ms</p>
+                                            </div>
+                                            <div class="metric-card">
+                                                <h5>Memory Usage</h5>
+                                                <p id="memory-usage-value">0 MB</p>
+                                            </div>
+                                            <div class="metric-card">
+                                                <h5>Std. Error</h5>
+                                                <p id="std-error-value">±0.000</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="action-buttons">
+                                        <button id="add-to-comparison" class="btn btn--secondary">Add to Comparison</button>
+                                        <button id="export-results" class="btn btn--outline">Export Results</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="comparison-tab">
+                <div class="card">
+                    <div class="card__header">
+                        <h2>Methods Comparison</h2>
+                    </div>
+                    <div class="card__body">
+                        <div id="comparison-container">
+                            <div class="no-comparison">
+                                <p>Add results from different methods to compare them here</p>
+                            </div>
+                            <div id="comparison-table-container" class="hidden">
+                                <table class="data-table comparison-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Method</th>
+                                            <th>Option Price</th>
+                                            <th>Delta</th>
+                                            <th>Gamma</th>
+                                            <th>Theta</th>
+                                            <th>Vega</th>
+                                            <th>Calculation Time</th>
+                                            <th>Error</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="comparison-table-body">
+                                        <!-- Comparison data will be added here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="comparison-chart-container">
+                                <canvas id="comparison-chart"></canvas>
+                            </div>
+                            <div class="action-buttons mt-8">
+                                <button id="clear-comparison" class="btn btn--secondary">Clear Comparison</button>
+                                <button id="export-comparison" class="btn btn--outline">Export Comparison</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="analysis-tab">
+                <div class="card">
+                    <div class="card__header">
+                        <h2>Sensitivity Analysis</h2>
+                    </div>
+                    <div class="card__body">
+                        <div class="analysis-controls">
+                            <div class="form-group">
+                                <label class="form-label" for="analysis-param">Parameter</label>
+                                <select id="analysis-param" class="form-control">
+                                    <option value="underlying">Underlying Price</option>
+                                    <option value="strike">Strike Price</option>
+                                    <option value="volatility">Volatility</option>
+                                    <option value="time">Time to Expiry</option>
+                                    <option value="rate">Risk-Free Rate</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="analysis-range">Range (±%)</label>
+                                <input type="number" id="analysis-range" class="form-control" value="20" min="1" max="100">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="analysis-steps">Steps</label>
+                                <input type="number" id="analysis-steps" class="form-control" value="10" min="3" max="50">
+                            </div>
+                            <button id="run-analysis" class="btn btn--primary">Run Analysis</button>
+                        </div>
+                        
+                        <div class="analysis-results">
+                            <div class="analysis-chart-container">
+                                <canvas id="sensitivity-chart"></canvas>
+                            </div>
+                            <div class="analysis-table-container">
+                                <table class="data-table" id="sensitivity-table">
+                                    <thead>
+                                        <tr>
+                                            <th id="sensitivity-param-header">Volatility</th>
+                                            <th>Option Price</th>
+                                            <th>Delta</th>
+                                            <th>Gamma</th>
+                                            <th>Vega</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="sensitivity-table-body">
+                                        <!-- Sensitivity data will be added here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <div id="export-modal" class="modal hidden">
+            <div class="modal-content card">
+                <div class="card__header flex justify-between">
+                    <h3>Export Results</h3>
+                    <button class="close-modal" aria-label="Close">&times;</button>
+                </div>
+                <div class="card__body">
+                    <div class="form-group">
+                        <label class="form-label" for="export-format">Format</label>
+                        <select id="export-format" class="form-control">
+                            <option value="json">JSON</option>
+                            <option value="csv">CSV</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="export-content">Data</label>
+                        <textarea id="export-content" class="form-control" rows="10" readonly></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button id="copy-export" class="btn btn--primary">Copy to Clipboard</button>
+                        <button id="download-export" class="btn btn--secondary">Download File</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="batch-modal" class="modal hidden">
+            <div class="modal-content card">
+                <div class="card__header flex justify-between">
+                    <h3>Batch Pricing</h3>
+                    <button class="close-modal" aria-label="Close">&times;</button>
+                </div>
+                <div class="card__body">
+                    <p>Enter parameters for batch calculation (one option per line):</p>
+                    <div class="form-group">
+                        <textarea id="batch-input" class="form-control" rows="10" placeholder="S,K,r,σ,T,type"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="batch-method">Pricing Method</label>
+                        <select id="batch-method" class="form-control">
+                            <option value="blackscholes">Black-Scholes</option>
+                            <option value="montecarlo">Monte Carlo</option>
+                            <option value="finitediff">Finite Difference</option>
+                        </select>
+                    </div>
+                    <div class="form-actions">
+                        <button id="run-batch" class="btn btn--primary">Run Batch</button>
+                        <button class="close-modal btn btn--secondary">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="app.js"></script>
+</body>
+</html>
