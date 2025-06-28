@@ -12,8 +12,6 @@ A full-stack web application designed to bring powerful, real-time financial opt
 4.  [A Look at the Application](#a-look-at-the-application)
 5.  [Getting Started](#getting-started)
 6.  [Project Philosophy](#project-philosophy)
-7.  [Contributing](#contributing)
-8.  [License](#license)
 
 ## What is This Project?
 
@@ -76,3 +74,29 @@ Clone this repository to your local machine:
 ```bash
 git clone https://github.com/your-username/options-pricing-engine.git
 cd options-pricing-engine
+```
+
+### 3. Set Up the Backend
+Install the required Python packages and compile the C++ core:
+```bash
+# Install Python dependencies
+pip install -r requirements.txt
+
+# Compile the C++ engine
+g++ -std=c++17 -O3 OptionsPricingEngine.cpp -o pricing_engine -lQuantLib
+```
+
+### 4. Run the Application
+1. Start the Backend API:
+```bash
+python flask_api.py
+```
+
+2. Open the Frontend:
+Simply open the index.html file in your web browser. The application will automatically connect to the backend server.
+
+## Project Philosophy
+This project was built on three core principles:
+- Speed: Financial markets move fast. Our tools should too. By implementing the core algorithms in C++, we ensure performance is never a bottleneck.
+- Accuracy: Our results are based on trusted, industry-standard mathematical models, providing a reliable foundation for any analysis.
+- Accessibility: Complex financial tools shouldn't be confined to expensive terminals. By building a full-stack web application, we make powerful pricing technology available to everyone.
