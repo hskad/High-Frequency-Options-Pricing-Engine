@@ -1,1 +1,16 @@
 
+# Python
+__pycache__/
+*.pyc
+venv/
+.env
+
+# C++
+*.o
+*.out
+pricing_engine
+
+# IDE/OS files
+.vscode/
+.idea/
+*.DS_Store
