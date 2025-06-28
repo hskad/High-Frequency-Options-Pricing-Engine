@@ -60,8 +60,7 @@ The user interface is designed to be intuitive and powerful, allowing users to q
 ![Application Screenshot](Description.png)
 
 **System Architecture Overview:**
-<img src="docs/img/Architecture.png" alt="Architecture Diagram" width="300" height="200">
-![Architecture Diagram](docs/img/Architecture.png)
+<img src="docs/img/Architecture.png" alt="Architecture Diagram" width="400" height="400">
 
 ## Getting Started
 
