@@ -57,7 +57,8 @@ The project uses a three-layer architecture, choosing the best technology for ea
 The user interface is designed to be intuitive and powerful, allowing users to quickly price options and analyze results.
 
 **Main Dashboard & Pricing Interface:**
-![Application Screenshot](Description.png)
+
+<img src="docs/img/image.png" alt="Application Screenshot" width="400" height="550">
 
 **System Architecture Overview:**
 
